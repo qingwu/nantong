@@ -62,7 +62,7 @@ MenuWindow::MenuWindow(QWidget *parent)
 #else
     this->setFixedSize (QSize(800, 600));
 #endif
-    connect(registerSetButton,SIGNAL(clicked()),this,SIGNAL(regButtonClicked()));
+    //connect(registerSetButton,SIGNAL(clicked()),this,SIGNAL(regButtonClicked()));
     connect(this, SIGNAL(hidesetshowview()), this->parentWidget(), SIGNAL(hidemainshowview()));
     connect(this,SIGNAL(unitSetDialogClose(int)),this->parentWidget(),SLOT(updateTabWidget(int)));
 }
@@ -114,7 +114,7 @@ void MenuWindow::createActions()
 
     registerSetAction = new QAction (tr("&登记设置"), this);
     registerSetAction->setStatusTip (tr("设置登记"));
-    connect( registerSetAction, SIGNAL(triggered()), this, SIGNAL(regButtonClicked()));
+    //connect( registerSetAction, SIGNAL(triggered()), this, SIGNAL(regButtonClicked()));
 
     shieldSetAction = new QAction (tr("&屏蔽设置"), this);
        shieldSetAction->setStatusTip (tr("设置屏蔽"));

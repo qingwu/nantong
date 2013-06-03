@@ -108,6 +108,11 @@ MainWidget::MainWidget(QWidget *parent) :
     createItems();
     createActions();
 
+    //by linwotian,2013.5.27
+    connect(eventdialog,SIGNAL(hideWindowSignal()),this,SLOT(hideWindow()));
+    connect(eventdialog,SIGNAL(secondhideWindowSignal()),this,SLOT(secondhideWindow()));
+
+
     //createStatusBar();//by qingwu:
     //getHashBusFromBusset();//hashBusOut and hashBusIn initialize ,get data from busset table in the database
     keyThread = new KeyDetect(this);    
@@ -2181,8 +2186,11 @@ void MainWidget::linkageStartSlot( int iobrnum,int loopnum,int nodenum,unsigned 
 
             linkList.append(stringItem);
             hashLink.insert(tempnode, (newState<<24) | (TI_LinkageStart<<16) | (linkList.count()-1));
+            emit eventNumberChangedSignal();
+
             linknumLabel->setText(tr("%1").arg(linkList.count()));
             emit closeWVSignal();
+
             ilink = linkList.count()-1;
             updateLinkWidgetSlot();
 
@@ -2992,7 +3000,7 @@ void MainWidget::createItems()
     linkTipLabel->setGeometry(QRect(5,186,80,20));
     linknumLabel = new QLabel(tr("000"),this);
     linknumLabel->setGeometry(QRect(90,186,30,20));
-    linkTableWidget = new QTableWidget(LISTWIDGET_ROW_OF_FIRE-1,LISTWIDGET_COLUMN,this);//LISTWIDGET_ROW_OF_FIRE - 1
+    linkTableWidget = new QTableWidget(LISTWIDGET_ROW_OF_FIRE - 1,LISTWIDGET_COLUMN,this);//LISTWIDGET_ROW_OF_FIRE - 1
     linkTableWidget->setGeometry(QRect(0,206,800,141));
     linkTableWidget->horizontalHeader()->setStretchLastSection(true);
     linkTableWidget->verticalHeader()->setDefaultSectionSize(20);//set the verticalHeader size is 24
@@ -3540,6 +3548,7 @@ void MainWidget::hideWindow()
     if (password.matchFlag)
     {
         //this->hide();
+        eventdialog->hide();
         menutype = 0;
         w->show();
     }
@@ -3668,7 +3677,7 @@ void MainWidget::shieldEventDialog()
 
     if(shieldList.isEmpty())
     {
-        timer4s->start();
+//        timer4s->start();
     }
 }
 
@@ -3694,7 +3703,7 @@ void MainWidget::hand_automaticEventDialog()
     }
     if(handautoList.isEmpty())
     {
-        timer4s->start();
+//        timer4s->start();
     }
 }
 
@@ -3947,6 +3956,7 @@ void MainWidget::dealLinkLed()
         1）遍历hashLink，如果有启动未反馈，那么就闪灯；
         2）遍历hashLink，如果有启动已反馈，那么点亮启动灯；否则不对启动灯操作。
     */
+    char linkStartLedFlick = false;
     if(hashLink.isEmpty())
     {
         emit linkSoundOffSignal();
@@ -3963,24 +3973,27 @@ void MainWidget::dealLinkLed()
         {
             emit ledStateChangeSignal(LED_OF_LINK_START,LED_PUT_FLICK);
             qDebug()<<"------------------led link-start put flick";
+            linkStartLedFlick = true;
             break;
         }
         ++iterP;
     }
 
-    iterP = hashLink.begin();
-    while (iterP != hashLink.end())
+    if( !linkStartLedFlick )
     {
-        if( (((iterP.value()>>24) & 0xff) == LINK_START_YES_FEEDBACK_STATE) ||
-                (((iterP.value()>>24) & 0xff) == 0x0B))//对非输入输出设备
+        iterP = hashLink.begin();
+        while (iterP != hashLink.end())
         {
-            emit ledStateChangeSignal(LED_OF_LINK_START,LED_PUT_ON);
-            qDebug()<<"------------------led link-start put on";
-            break;
+            if( (((iterP.value()>>24) & 0xff) == LINK_START_YES_FEEDBACK_STATE) ||
+                    (((iterP.value()>>24) & 0xff) == 0x0B))//对非输入输出设备
+            {
+                emit ledStateChangeSignal(LED_OF_LINK_START,LED_PUT_ON);
+                qDebug()<<"------------------led link-start put on";
+                break;
+            }
+            ++iterP;
         }
-        ++iterP;
     }
-
     /* LED_OF_LINK_FEEDBACK
         #define LINK_START_YES_FEEDBACK_STATE 0x02
         #define LINK_FEEDBACK_STATE 0x03
@@ -4189,12 +4202,12 @@ void MainWidget::singleBoardNumSlot(int num)
     //connect(boardDialog,SIGNAL(singleBoardNumSignal(int)),polling,SLOT(stopPolling()));
     //connect(boardDialog,SIGNAL(singleBoardNumSignal(int)),boardThread,SLOT(signalBoardRegSlot(int)));
 
+    qDebug()<<"in MainWidget:singleBoardNumSlot():polling stopped.start single boardreg thread..";
     if(polling->isRunning())
         polling->stopPolling();//timer in polling thread stopped!!!
-    qDebug()<<"in MainWidget:singleBoardNumSlot():polling stopped.start single boardreg thread..";
 
     boardThread->singleBoardRegSlot(num);
-    //boardThread->start();
+    boardThread->start();
 
 }
 void MainWidget::updateHandwidgetType(int systemtype)
@@ -4447,73 +4460,98 @@ void MainWidget::systemSelfcheck()
     keyThread->Delay(50);
     keyThread->put_on_selfchecklight();
 
-    QTimer *testTimer= new QTimer(this);
-    testTimer->setInterval(15000);//12s
-    testTimer->setSingleShot(true);
+    QTimer *selfcheckTimer= new QTimer(this);
+    selfcheckTimer->setInterval(15000);//12s
+    selfcheckTimer->setSingleShot(true);
 
 
-    testTimer->start();
+    selfcheckTimer->start();
     if(polling->isRunning())
     {
         polling->stopPolling();
     }
 
+    QSplashScreen *backgroundsplash = new QSplashScreen;
+    backgroundsplash->setPixmap(QPixmap(":/image/background-zijian.png"));
+    backgroundsplash->show();
 
+    QSplashScreen *backgroundsplash2 = new QSplashScreen;
+    backgroundsplash2->setPixmap(QPixmap(":/image/background-zijian.png"));
 
 
 
     QSplashScreen *whitesplash = new QSplashScreen;
     whitesplash->setPixmap(QPixmap(":/image/white.PNG"));
-    whitesplash->show();
+//    whitesplash->show();
 
 
     QSplashScreen *blacksplash = new QSplashScreen;
     blacksplash->setPixmap(QPixmap(":/image/black.PNG"));
     //blacksplash->show();
 
+    QTimer *selfcheckTimer0= new QTimer(backgroundsplash);
+    selfcheckTimer0->setInterval(500);//2s
+    selfcheckTimer0->setSingleShot(true);
 
-    QTimer *testTimer1= new QTimer(whitesplash);
-    testTimer1->setInterval(2000);//2s
-    testTimer1->setSingleShot(true);
-
-
-    QTimer *testTimer2= new QTimer(blacksplash);
-    testTimer2->setInterval(2000);//2s
-    testTimer2->setSingleShot(true);
-
-    QTimer *testTimer3= new QTimer(this);
-    testTimer3->setInterval(2000);//2s
-    testTimer3->setSingleShot(true);
+    QTimer *selfcheckTimer1= new QTimer(whitesplash);
+    selfcheckTimer1->setInterval(2000);//2s
+    selfcheckTimer1->setSingleShot(true);
 
 
+    QTimer *selfcheckTimer2= new QTimer(blacksplash);
+    selfcheckTimer2->setInterval(2000);//2s
+    selfcheckTimer2->setSingleShot(true);
 
-    testTimer1->start();
-    QObject::connect(testTimer1,SIGNAL(timeout()), blacksplash,SLOT(show()));
-    QObject::connect(testTimer1,SIGNAL(timeout()), whitesplash,SLOT(deleteLater()));
+    QTimer *selfcheckTimer3= new QTimer(this);
+    selfcheckTimer3->setInterval(2000);//2s
+    selfcheckTimer3->setSingleShot(true);
 
-
-
-    QObject::connect(testTimer1,SIGNAL(timeout()), testTimer2,SLOT(start()));
-    QObject::connect(testTimer2,SIGNAL(timeout()), blacksplash,SLOT(deleteLater()));
-
-    QObject::connect(testTimer2,SIGNAL(timeout()), keyThread,SLOT(put_on_all_light()));
-    QObject::connect(testTimer2,SIGNAL(timeout()), testTimer3,SLOT(start()));
-    QObject::connect(testTimer2,SIGNAL(timeout()), this,SLOT(sendSelfcheckFrameOnce()));
-
-    QObject::connect(testTimer3,SIGNAL(timeout()), keyThread,SLOT(put_off_all_light()));
-    QObject::connect(testTimer3,SIGNAL(timeout()), keyThread,SLOT(put_on_selfchecklight()));
+    QTimer *selfcheckTimer4= new QTimer(backgroundsplash2);
+    selfcheckTimer4->setInterval(11000);//2s
+    selfcheckTimer4->setSingleShot(true);
 
 
-    QObject::connect(testTimer3,SIGNAL(timeout()), keyThread,SLOT(sound_take_turn_on()));
 
-    QObject::connect(testTimer,SIGNAL(timeout()), polling,SLOT(start()));
-    QObject::connect(testTimer,SIGNAL(timeout()), keyThread,SLOT(put_off_selfchecklight()));
+//    selfcheckTimer1->start();
+    selfcheckTimer0->start();
 
-    //         QObject::connect(testTimer,SIGNAL(timeout()), keyThread,SLOT(allSoundOffSlot()));
-    QObject::connect(testTimer,SIGNAL(timeout()), keyThread,SLOT(put_on_the_lights_before_selfcheck()));
-    QObject::connect(testTimer,SIGNAL(timeout()), keyThread,SLOT(start()));
-    QObject::connect(testTimer,SIGNAL(timeout()), keyThread->oneSecondTimer,SLOT(start()));
-    QObject::connect(testTimer,SIGNAL(timeout()), this,SLOT(setSelfcheckFlagFalseSlot()));
+
+    QObject::connect(selfcheckTimer0,SIGNAL(timeout()), whitesplash,SLOT(show()));
+    QObject::connect(selfcheckTimer0,SIGNAL(timeout()), backgroundsplash,SLOT(deleteLater()));
+    QObject::connect(selfcheckTimer0,SIGNAL(timeout()), selfcheckTimer1,SLOT(start()));
+
+
+    QObject::connect(selfcheckTimer1,SIGNAL(timeout()), blacksplash,SLOT(show()));
+
+    QObject::connect(selfcheckTimer1,SIGNAL(timeout()), whitesplash,SLOT(deleteLater()));
+
+
+
+    QObject::connect(selfcheckTimer1,SIGNAL(timeout()), selfcheckTimer2,SLOT(start()));
+    QObject::connect(selfcheckTimer2,SIGNAL(timeout()), blacksplash,SLOT(deleteLater()));
+    QObject::connect(selfcheckTimer2,SIGNAL(timeout()), backgroundsplash2,SLOT(show()));
+    QObject::connect(selfcheckTimer2,SIGNAL(timeout()), selfcheckTimer4,SLOT(start()));
+    QObject::connect(selfcheckTimer4,SIGNAL(timeout()), backgroundsplash2,SLOT(deleteLater()));
+
+    QObject::connect(selfcheckTimer2,SIGNAL(timeout()), keyThread,SLOT(put_on_all_light()));
+    QObject::connect(selfcheckTimer2,SIGNAL(timeout()), selfcheckTimer3,SLOT(start()));
+    QObject::connect(selfcheckTimer2,SIGNAL(timeout()), this,SLOT(sendSelfcheckFrameOnce()));
+
+    QObject::connect(selfcheckTimer3,SIGNAL(timeout()), keyThread,SLOT(put_off_all_light()));
+    QObject::connect(selfcheckTimer3,SIGNAL(timeout()), keyThread,SLOT(put_on_selfchecklight()));
+
+
+    QObject::connect(selfcheckTimer3,SIGNAL(timeout()), keyThread,SLOT(sound_take_turn_on()));
+
+
+    QObject::connect(selfcheckTimer,SIGNAL(timeout()), polling,SLOT(start()));
+    QObject::connect(selfcheckTimer,SIGNAL(timeout()), keyThread,SLOT(put_off_selfchecklight()));
+
+    //         QObject::connect(selfcheckTimer,SIGNAL(timeout()), keyThread,SLOT(allSoundOffSlot()));
+    QObject::connect(selfcheckTimer,SIGNAL(timeout()), keyThread,SLOT(put_on_the_lights_before_selfcheck()));
+    QObject::connect(selfcheckTimer,SIGNAL(timeout()), keyThread,SLOT(start()));
+    QObject::connect(selfcheckTimer,SIGNAL(timeout()), keyThread->oneSecondTimer,SLOT(start()));
+    QObject::connect(selfcheckTimer,SIGNAL(timeout()), this,SLOT(setSelfcheckFlagFalseSlot()));
 
 }
 

@@ -32,6 +32,22 @@ public:
     HandWidget *handwidget;
     QTableWidget *shieldTableWidget;
 
+    QLabel *fireLabel;
+    QLabel *linkLabel;
+    QLabel *superviseLabel;
+    QLabel *faultLabel;
+    QLabel *delayLabel;
+    QLabel *shieldLabel;
+
+    QLabel *firenumLabel;
+    QLabel *linknumLabel;
+    QLabel *supervisenumLabel;
+    QLabel *faultnumLabel;
+    QLabel *delaynumLabel;
+    QLabel *shieldnumLabel;
+
+    void changeEventNum(int , int , int ,int  ,int);
+
 protected:
     void timerEvent (QTimerEvent *event);
 private:
@@ -39,13 +55,23 @@ private:
     void createItems();
     void readEvent(QString, QList<QString> eventList );
 
+    /*QAction*/
+    QAction *hideAction;
+    QAction *secondhideAction;
+
 signals:
+
+        void hideWindowSignal();
+        void secondhideWindowSignal();
 
 public slots:
         void oneEventShowSLot(QString, QList<QString>&, char );
         void updateOneEventSlot(QString);
         void mySetWindowTitle(char flag);
         void clearEventDialogSlot();
+
+        void hideWindow();
+        void secondhideWindow();
 
 
 };

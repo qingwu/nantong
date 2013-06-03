@@ -18,8 +18,8 @@ public:
     QLabel *timeLabel;
     QLabel *infoLabel;
     QLabel *backgroundLabel;
-    QPushButton *okPushButton;
-    QPushButton *cancelPushButton;
+//    QPushButton *okPushButton;
+//    QPushButton *cancelPushButton;
     QPushButton *okToPollingButton;
 
 
@@ -30,7 +30,7 @@ public:
 
     QPushButton *singleOkPushButton;
     QPushButton *allRegPushButton;
-    QPushButton *singleCancelPushButton;
+    QPushButton *regCancelPushButton;
 
     void statrTimer15s();
 

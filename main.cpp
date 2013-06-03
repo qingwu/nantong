@@ -24,15 +24,14 @@ int main(int argc, char *argv[])
     //    QApplication a(argc, argv);
 
     MyApplication a(argc, argv);
-    a.installEventFilter(&a);
+//    a.installEventFilter(&a);
 
-
-    //    const QApplication::Type type = a.type();
-
-    //    if (QApplication::GuiServer == type)
-    //    {
-    //        QPinyinImpl::installInputMethod();
-    //    }
+    /* for pinyin-input ,the next 3 lines*/
+//    const QApplication::Type type = a.type();
+//    if (QApplication::GuiServer == type)
+//    {
+//        QPinyinImpl::installInputMethod();
+//    }
 
 
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF8"));
@@ -61,7 +60,7 @@ int main(int argc, char *argv[])
 
     splash->show();
     databaseTimer->start();
-    splash->showMessage(QObject::tr("数据库初始化..."),Qt::AlignCenter, Qt::white);//We are initializing the database...
+    //splash->showMessage(QObject::tr("数据库初始化..."),Qt::AlignCenter, Qt::white);//We are initializing the database...
     //splash->showMessage(QObject::tr("数据库初始化中...\n\n\n\n\n\n\n\n\n\n\n\n\n\n%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")),Qt::AlignCenter, Qt::white);
 
 
@@ -96,14 +95,15 @@ int main(int argc, char *argv[])
     mainwinTimer->start();
 
     splash->showMessage(QObject::tr("系统初始化中...\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")),Qt::AlignCenter, Qt::black);
+
     //QObject::connect(&mainwin,SIGNAL(resetsysSignal()),qApp,SLOT(quit()));
-    //    int nret = a.exec();
 
-    //    if (QApplication::GuiServer == type)
-    //        QPinyinImpl::releaseInputMethod();
+    /* for pinyin-input the next 4 lines*/
+//    int nret = a.exec();
+//    if (QApplication::GuiServer == type)
+//        QPinyinImpl::releaseInputMethod();
+//    return nret;
 
-
-    //    return nret;
     a.exec();
 
 }

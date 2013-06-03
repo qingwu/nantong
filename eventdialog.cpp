@@ -7,8 +7,10 @@
 #include <QtSql/QSqlError>
 #include<QtCore/QVariant>
 #include <QtCore/QDateTime>
+#include <QtGui/QFrame>
 #include <QTimer>
 #include <QtDebug>
+#include <QtGui/QAction>
 
 #include "type.h"
 #include "defMacro.h"
@@ -102,6 +104,66 @@ void eventDialog::createItems()
     timeLabel = new QLabel(this);
     timeLabel->setGeometry(QRect(580,540,180,24));
 
+    hideAction = new QAction (this);
+    hideAction->setShortcut (Qt::Key_F2);
+    secondhideAction = new QAction (this);
+    secondhideAction->setShortcut (Qt::Key_F3);
+    connect(hideAction, SIGNAL(triggered()), this, SLOT(hideWindow()));
+    connect(secondhideAction, SIGNAL(triggered()), this, SLOT(secondhideWindow()));
+    this->addAction(hideAction);
+    this->addAction(secondhideAction);
+
+    fireLabel = new QLabel(tr("火警:"),this);
+    fireLabel->setAlignment(Qt::AlignCenter);
+    fireLabel->setFrameStyle(QFrame::Box);
+    fireLabel->setGeometry(QRect(10,500,40,24));
+    firenumLabel = new QLabel(tr("0000"),this);
+    firenumLabel->setAlignment(Qt::AlignCenter);
+    firenumLabel->setGeometry(QRect(60,500,40,24));
+
+    linkLabel = new QLabel(tr("联动:"),this);
+    linkLabel->setAlignment(Qt::AlignCenter);
+    linkLabel->setFrameStyle(QFrame::Box);
+    linkLabel->setGeometry(QRect(110,500,40,24));
+    linknumLabel = new QLabel(tr("0000"),this);
+    linknumLabel->setAlignment(Qt::AlignCenter);
+    linknumLabel->setGeometry(QRect(160,500,40,24));
+
+    faultLabel = new QLabel(tr("故障:"),this);
+    faultLabel->setAlignment(Qt::AlignCenter);
+    faultLabel->setFrameStyle(QFrame::Box);
+    faultLabel->setGeometry(QRect(210,500,40,24));
+    faultnumLabel = new QLabel(tr("0000"),this);
+    faultnumLabel->setAlignment(Qt::AlignCenter);
+    faultnumLabel->setGeometry(QRect(260,500,40,24));
+
+    delayLabel = new QLabel(tr("延时:"),this);
+    delayLabel->setAlignment(Qt::AlignCenter);
+    delayLabel->setFrameStyle(QFrame::Box);
+    delayLabel->setGeometry(QRect(310,500,40,24));
+    delaynumLabel = new QLabel(tr("0000"),this);
+    delaynumLabel->setAlignment(Qt::AlignCenter);
+    delaynumLabel->setGeometry(QRect(360,500,40,24));
+
+    superviseLabel = new QLabel(tr("监管:"),this);
+    superviseLabel->setAlignment(Qt::AlignCenter);
+    superviseLabel->setFrameStyle(QFrame::Box);
+    superviseLabel->setGeometry(QRect(410,500,40,24));
+    supervisenumLabel = new QLabel(tr("0000"),this);
+    supervisenumLabel->setAlignment(Qt::AlignCenter);
+    supervisenumLabel->setGeometry(QRect(460,500,40,24));
+
+    shieldLabel = new QLabel(tr("屏蔽:"),this);
+    shieldLabel->setAlignment(Qt::AlignCenter);
+    shieldLabel->setFrameStyle(QFrame::Box);
+    shieldLabel->setGeometry(QRect(510,500,40,24));
+    shieldnumLabel = new QLabel(tr("0000"),this);
+    shieldnumLabel->setAlignment(Qt::AlignCenter);
+    shieldnumLabel->setGeometry(QRect(560,500,40,24));
+
+    this->changeEventNum(0,0,0,0,0);
+
+
 #if 0
     switch (type)
     {
@@ -154,7 +216,7 @@ void eventDialog::mySetWindowTitle(char flag)
 {
     if( (flag & 0x01))
     {
-        setWindowTitle(tr("火警 事件"));        
+        setWindowTitle(tr("火警 事件"));
         QStringList label;
         label<<tr("火 警");
         eventTableWidget->setHorizontalHeaderLabels(label);
@@ -451,3 +513,42 @@ void eventDialog::readEvent()
 
 }
 #endif
+
+void eventDialog::hideWindow()
+{
+
+    emit hideWindowSignal();
+
+}
+void eventDialog::secondhideWindow()
+{
+    this->close();
+    emit secondhideWindowSignal();
+}
+
+void eventDialog::changeEventNum(int firenum, int linknum, int faultnum, int delaynum, int supervisenum)
+{
+    firenumLabel->setText(tr("%1").arg(firenum));
+    linknumLabel->setText(tr("%1").arg(linknum));
+    faultnumLabel->setText(tr("%1").arg(faultnum));
+    delaynumLabel->setText(tr("%1").arg(delaynum));
+    supervisenumLabel->setText(tr("%1").arg(supervisenum));
+
+    QSqlDatabase::database().transaction();
+    QSqlQuery query;
+    query.setForwardOnly(true);
+    query.exec("select COUNT(*) from shieldhis");
+//    int shield_count = 0;
+//    while (query.next())
+//    {
+//        shield_count++;
+//    }
+//    shieldnumLabel->setText(tr("%1").arg(shield_count));
+//    int shield_count = 0;
+        while (query.next())
+        {
+            shieldnumLabel->setText(tr("%1").arg(query.value(0).toInt()));
+        }
+
+    QSqlDatabase::database().commit();
+}

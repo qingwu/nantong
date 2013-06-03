@@ -18,57 +18,120 @@ BoardRegDialog::BoardRegDialog(QWidget *parent)
     : QDialog(parent)
 {
     pollingStartTimer15s = new QTimer(this);
-    pollingStartTimer15s->setInterval(15000);//15s
+    pollingStartTimer15s->setInterval(30000);//15s
     pollingStartTimer15s->setSingleShot(true);
     connect(pollingStartTimer15s,SIGNAL(timeout()),this,SIGNAL(cancelPushButtonClicked()));
-
-    isSingleRegFlag = false;
-    this->setFixedSize(400,240);
-    setWindowTitle(tr("接口板登记"));
-    infoLabel = new QLabel(this);
-    infoLabel->setText(tr("是否重新登记？\n如果不需要重新登记，请点击“取消”，开始巡检\n"));
-    infoLabel->setAlignment(Qt::AlignCenter);
-    QFont f("unifont", 12, QFont::Light);
-    infoLabel->setFont(f);
-    okPushButton = new QPushButton(tr("确定"),this);
-    cancelPushButton = new QPushButton(tr("取消"),this);
-    infoLabel->setGeometry(QRect(20,40,350,60));
-    okPushButton->setGeometry(QRect(100,150,80,35));
-    cancelPushButton->setGeometry(QRect(200,150,80,35));
-
-    okToPollingButton = new QPushButton(tr("确定"),this);
-    okToPollingButton->setGeometry(QRect(160,150,80,35));
-    okToPollingButton->setVisible(false);
-
-    backgroundLabel = new QLabel(this->parentWidget());
-    backgroundLabel->setPixmap(QPixmap(":/image/background.PNG"));
-    backgroundLabel->setGeometry(QRect(0,0 ,800,600));
-    backgroundLabel->setVisible(false);
-
-    timeLabel = new QLabel(this);
-    timeLabel->setText(tr("%1秒后将跳过登记，开始巡检").arg(15));
-    timeLabel->setAlignment(Qt::AlignCenter);
-    timeLabel->setFont(f);
-    timeLabel->setGeometry(QRect(20,105,350,30));
-    timeLeft = 15;
-
+    timeLeft = 30;
 
     timer1s = new QTimer(this);
     timer1s->setInterval(1000);//1s
     connect(timer1s,SIGNAL(timeout()),this,SLOT(updateTimeLabelSlot()));
 
-
     createEscapeAction();
     createSingleBoardDialog();
-    setSignalVisibleFalse();
+
+    this->setFixedSize(500,300);
+    setWindowTitle(tr("接口板登记"));
 
     connect(this,SIGNAL(cancelPushButtonClicked()),this,SLOT(stopTimerSlot()));
-    connect(this,SIGNAL(okPushButtonClicked()),this,SLOT(stopTimerSlot()));
-    connect(okPushButton,SIGNAL(clicked()),this,SIGNAL(okPushButtonClicked()));
-    connect(cancelPushButton,SIGNAL(clicked()),this,SIGNAL(cancelPushButtonClicked()));
+    connect(this->parentWidget(), SIGNAL(closedialog()), this, SLOT(close()));
+
+
+
+//    isSingleRegFlag = false;
+
+//    infoLabel = new QLabel(this);
+////    infoLabel->setText(tr("是否重新登记？\n如果不需要重新登记，请点击“取消”，开始巡检\n"));
+//    infoLabel->setAlignment(Qt::AlignCenter);
+////    QFont f("unifont", 12, QFont::Light);
+//    infoLabel->setFont(f);
+//    infoLabel->setVisible(false);
+
+//    okPushButton = new QPushButton(tr("确定"),this);
+//    cancelPushButton = new QPushButton(tr("取消"),this);
+//    infoLabel->setGeometry(QRect(20,40,350,60));
+//    okPushButton->setGeometry(QRect(100,150,80,35));
+//    cancelPushButton->setGeometry(QRect(200,150,80,35));
+
+//    okToPollingButton = new QPushButton(tr("确定"),this);
+//    okToPollingButton->setGeometry(QRect(160,150,80,35));
+//    okToPollingButton->setVisible(false);
+
+//    connect(this,SIGNAL(cancelPushButtonClicked()),this,SLOT(stopTimerSlot()));
+//    //connect(this,SIGNAL(okPushButtonClicked()),this,SLOT(stopTimerSlot()));
+//    connect(okPushButton,SIGNAL(clicked()),this,SIGNAL(okPushButtonClicked()));
+//    connect(cancelPushButton,SIGNAL(clicked()),this,SIGNAL(cancelPushButtonClicked()));
+//    connect(okToPollingButton,SIGNAL(clicked()),this,SIGNAL(regAllOverSignal()));
+//    connect(this->parentWidget(), SIGNAL(closedialog()), this, SLOT(close()));
+
+}
+
+void BoardRegDialog::createSingleBoardDialog()
+{
+    //isSingleRegFlag = true;
+    setWindowTitle(tr("接口板登记设置"));
+
+    QFont f("unifont", 12, QFont::Light);
+    singleRegInfoLabel = new QLabel(this);
+    singleRegInfoLabel->setText(tr(">>单接口板登记 : 请输入要登记的接口板号,并点击确定."));
+    //singleRegInfoLabel->setAlignment(Qt::AlignCenter);
+    singleRegInfoLabel->setFont(f);
+    singleRegInfoLabel->setGeometry(QRect(20,20,420,40));
+
+    singleBoardNumLabel = new QLabel(this);
+    singleBoardNumLabel->setText(tr("接口板号 :"));
+    singleBoardNumLabel->setFont(f);
+    singleBoardNumLabel->setGeometry(QRect(70,70,70,24));    
+
+    singleBoardNumLineEdit = new QLineEdit(this);
+    singleBoardNumLineEdit->setGeometry(QRect(160,70,60,27));
+    singleBoardNumLineEdit->setValidator(new QIntValidator(1,34,this));
+    singleBoardNumLineEdit->setText(tr("1"));
+
+    singleOkPushButton = new QPushButton(tr("确定"),this);
+    singleOkPushButton->setGeometry(QRect(250,70,85,27));
+
+    allRegInfoLabel = new QLabel(this);
+    allRegInfoLabel->setText(tr(">>全体接口板登记:请点击下方按钮; 点击“取消”按钮，开始巡检"));
+    allRegInfoLabel->setGeometry(QRect(20,120,470,40));
+    allRegInfoLabel->setFont(f);
+
+    allRegPushButton = new QPushButton(tr("全体接口板登记"),this);
+    allRegPushButton->setGeometry(QRect(70,170,140,27));
+
+    regCancelPushButton = new QPushButton(tr("取消"),this);
+    regCancelPushButton->setGeometry(QRect(250,170,85,27));
+
+    timeLabel = new QLabel(this);
+    timeLabel->setText(tr("%1秒后将跳过登记，开始巡检").arg(pollingStartTimer15s->interval()/1000));
+    timeLabel->setAlignment(Qt::AlignCenter);
+    timeLabel->setFont(f);
+    timeLabel->setGeometry(QRect(20,220,350,30));
+
+    infoLabel = new QLabel(this);
+    infoLabel->setAlignment(Qt::AlignCenter);
+    infoLabel->setFont(f);
+    infoLabel->setVisible(false);
+    infoLabel->setGeometry(QRect(20,40,350,60));
+
+    backgroundLabel = new QLabel(this->parentWidget());
+    backgroundLabel->setPixmap(QPixmap(":/image/background.PNG"));
+    backgroundLabel->setGeometry(QRect(0,0 ,800,600));
+    backgroundLabel->setVisible(true);
+
+    okToPollingButton = new QPushButton(tr("确定"),this);
+    okToPollingButton->setGeometry(QRect(160,150,80,35));
+    okToPollingButton->setVisible(false);
     connect(okToPollingButton,SIGNAL(clicked()),this,SIGNAL(regAllOverSignal()));
+
+
+    connect(singleOkPushButton,SIGNAL(clicked()),this,SLOT(emitSingleBoardNum()));
+    connect(allRegPushButton,SIGNAL(clicked()),this,SIGNAL(okPushButtonClicked()));
+    connect(regCancelPushButton,SIGNAL(clicked()),this,SIGNAL(cancelPushButtonClicked()));
     connect(this->parentWidget(), SIGNAL(closedialog()), this, SLOT(close()));
 }
+
+
 void BoardRegDialog::stopTimerSlot()
 {
     timeLabel->setVisible(false);
@@ -93,12 +156,14 @@ void BoardRegDialog::regStartMessage()
 {
     //qDebug()<<"*************************************reg-start-message";
     //if(isSingleRegFlag)//不管是单接口登记还是全体接口板登记，都隐藏
+    this->setFixedSize(400,240);
+    stopTimerSlot();
     setSignalVisibleFalse();
     infoLabel->setText("接口板登记中...");
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setVisible(true);
-    okPushButton->setVisible(false);
-    cancelPushButton->setVisible(false);
+//    okPushButton->setVisible(false);
+//    cancelPushButton->setVisible(false);
     okToPollingButton->setVisible(false);
 }
 
@@ -119,13 +184,15 @@ void BoardRegDialog::regFaultMessage()
 void BoardRegDialog::currentRegBoardSlot(int i)
 {
     //qDebug()<<"*****************************currentRegBoardSlot";
+    this->setFixedSize(400,240);
     infoLabel->setVisible(true);
     infoLabel->setText(tr("%1 号接口板登记中...").arg(i));
     infoLabel->setAlignment(Qt::AlignCenter);
-    if(isSingleRegFlag)
-    {
-        setSignalVisibleFalse();
-    }
+    setSignalVisibleFalse();
+//    if(isSingleRegFlag)
+//    {
+//        setSignalVisibleFalse();
+//    }
 }
 void BoardRegDialog::setSignalVisibleFalse()
 {
@@ -135,7 +202,7 @@ void BoardRegDialog::setSignalVisibleFalse()
     singleBoardNumLineEdit->setVisible(false);
     singleOkPushButton->setVisible(false);
     allRegPushButton->setVisible(false);
-    singleCancelPushButton->setVisible(false);
+    regCancelPushButton->setVisible(false);
 
 }
 void BoardRegDialog::setSignalVisibleTrue()
@@ -146,7 +213,7 @@ void BoardRegDialog::setSignalVisibleTrue()
     singleBoardNumLineEdit->setVisible(true);
     singleOkPushButton->setVisible(true);
     allRegPushButton->setVisible(true);
-    singleCancelPushButton->setVisible(true);
+    regCancelPushButton->setVisible(true);
 
 }
 void BoardRegDialog::regOverSlot(int boardRegNum)
@@ -155,8 +222,8 @@ void BoardRegDialog::regOverSlot(int boardRegNum)
     infoLabel->setText(tr("登记结果:共%1个接口板在线\n""按下 确定 开始巡检...").arg(boardRegNum));
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setVisible(true);
-    okPushButton->setVisible(false);
-    cancelPushButton->setVisible(false);
+//    okPushButton->setVisible(false);
+//    cancelPushButton->setVisible(false);
     okToPollingButton->setVisible(true);
     okToPollingButton->setFocus();
 }
@@ -181,48 +248,10 @@ void BoardRegDialog::singleRegOverSlot(int boardnum)
 
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setVisible(true);
-    okPushButton->setVisible(false);
-    cancelPushButton->setVisible(false);
+//    okPushButton->setVisible(false);
+//    cancelPushButton->setVisible(false);
     okToPollingButton->setVisible(true);
     okToPollingButton->setFocus();
-}
-void BoardRegDialog::createSingleBoardDialog()
-{
-    isSingleRegFlag = true;
-    setWindowTitle(tr("接口板登记设置"));
-    QFont f("unifont", 12, QFont::Light);
-    singleRegInfoLabel = new QLabel(this);
-    singleRegInfoLabel->setText(tr(">>>> 单接口板登记 : 请输入要登记的接口板号,\n     并点击确定."));
-    //singleRegInfoLabel->setAlignment(Qt::AlignCenter);
-    singleRegInfoLabel->setFont(f);
-    singleRegInfoLabel->setGeometry(QRect(30,20,420,40));
-
-    singleBoardNumLabel = new QLabel(this);
-    singleBoardNumLabel->setText(tr("接口板号 :"));
-    singleBoardNumLabel->setGeometry(QRect(70,80,70,24));
-
-    singleBoardNumLineEdit = new QLineEdit(this);
-    singleBoardNumLineEdit->setGeometry(QRect(160,80,60,27));
-    singleBoardNumLineEdit->setValidator(new QIntValidator(1,34,this));
-
-    singleOkPushButton = new QPushButton(tr("确定"),this);
-    singleOkPushButton->setGeometry(QRect(250,80,85,27));
-
-    allRegInfoLabel = new QLabel(this);
-    allRegInfoLabel->setText(tr(">>>> 全体接口板登记，请点击下方按钮:"));
-    allRegInfoLabel->setGeometry(QRect(30,120,400,40));
-    allRegInfoLabel->setFont(f);
-
-    allRegPushButton = new QPushButton(tr("全体接口板登记"),this);
-    allRegPushButton->setGeometry(QRect(70,170,140,27));
-
-    singleCancelPushButton = new QPushButton(tr("取消"),this);
-    singleCancelPushButton->setGeometry(QRect(250,170,85,27));
-
-    connect(singleOkPushButton,SIGNAL(clicked()),this,SLOT(emitSingleBoardNum()));
-    connect(allRegPushButton,SIGNAL(clicked()),this,SIGNAL(okPushButtonClicked()));
-    connect(singleCancelPushButton,SIGNAL(clicked()),this,SLOT(close()));
-    connect(this->parentWidget(), SIGNAL(closedialog()), this, SLOT(close()));
 }
 
 void BoardRegDialog::emitSingleBoardNum()
@@ -238,8 +267,8 @@ void BoardRegDialog::refreshDialog()
     backgroundLabel->setVisible(true);
 
     infoLabel->setVisible(false);
-    okPushButton->setVisible(false);
-    cancelPushButton->setVisible(false);
+//    okPushButton->setVisible(false);
+//    cancelPushButton->setVisible(false);
     okToPollingButton->setVisible(false);
 
     setSignalVisibleTrue();
@@ -260,14 +289,14 @@ void BoardRegDialog::createEscapeAction()
 BoardRegDialog::~BoardRegDialog()
 {
     delete(infoLabel);
-    delete(okPushButton);
-    delete(cancelPushButton);
+//    delete(okPushButton);
+//    delete(cancelPushButton);
     delete(singleRegInfoLabel);
     delete(allRegInfoLabel);
     delete(singleBoardNumLabel);
     delete(singleBoardNumLineEdit);
     delete(singleOkPushButton);
     delete(allRegPushButton);
-    delete(singleCancelPushButton);
+    delete(regCancelPushButton);
     delete(escapeAction);
 }

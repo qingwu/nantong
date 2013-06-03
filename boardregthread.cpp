@@ -270,7 +270,7 @@ void boardRegThread::singleBoardRegSlot(int num)
 
     isSingleBoardRegFlag = true;
     singleBoardNum = num;
-    this->start();
+    //this->start();
 
 
     //    can_fd = open("/dev/can", O_RDWR);
@@ -383,18 +383,33 @@ void  boardRegThread::dealInfo(int i)
     if(i < LOUXIANNUM)// board 1~32
     {
         /* current board num is i, loop num is recvFrame.data[0]*/
-        loopid = recvFrame.data[0];
+        loopid = recvFrame.data[0];        
         nodeid = recvFrame.data[1];
+        if( (loopid > 4) || (nodeid-1 > LOUXIANMAXNUM) )
+        {
+            qDebug()<<"in boardRegThread::dealInfo():loopid="<<loopid<<"nodeid="<<nodeid<<",return here.";
+            return;
+        }
         memcpy( &nodeType[loopid-1][nodeid-1], &recvFrame.data[2], 5*sizeof(unsigned char));
     }
     else if( i == LOUXIANNUM)//louxian board 33
-    {
+    {        
         nodeid = recvFrame.data[0];
+        if( nodeid-1 > LOUXIANMAXNUM )
+        {
+            qDebug()<<"in boardRegThread::dealInfo():louxian--nodeid="<<nodeid<<",return here.";
+            return;
+        }
         memcpy( &louxianReg[nodeid-1], &recvFrame.data[1], 6*sizeof(unsigned char));
     }
     else if( i == ZHIKONGZONGXIAN)//zhikong board 34
     {
         nodeid = recvFrame.data[0];
+        if( nodeid-1 > ZHIKONGZONGXIANNUM )
+        {
+            qDebug()<<"in boardRegThread::dealInfo():louxian--nodeid="<<nodeid<<",return here.";
+            return;
+        }
         memcpy( &zhikongzongxianReg[nodeid-1], &recvFrame.data[1], 6*sizeof(unsigned char));
     }
 }

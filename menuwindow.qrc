@@ -1,8 +1,9 @@
 <RCC>
     <qresource prefix="/image">
         <file>start.png</file>
-        <file>background.PNG</file>
         <file>black.PNG</file>
         <file>white.PNG</file>
+        <file>background.png</file>
+        <file>background1.PNG</file>
     </qresource>
 </RCC>

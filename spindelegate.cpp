@@ -21,13 +21,19 @@ QWidget *spinDelegate::createEditor(QWidget *parent,
         case 0:
             editor->setRange(1, 255);
         break;
+        case 5:
+            editor->setRange(1, 120);
+        break;
         case 8:
         case 9:
         case 10:
         case 11:
-        case 12:
             editor->setRange(0, 100);
+            break;            
+        case 12:
+            editor->setRange(0, 9999);
             break;
+
         /*case 9:
             editor->setRange(1,100);
             break;

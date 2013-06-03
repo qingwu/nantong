@@ -51,7 +51,13 @@ SOURCES += main.cpp\
     handwidget.cpp \
     public.cpp \
     myqsplashscreen.cpp \
-    myapplication.cpp
+    myapplication.cpp \
+#    PinyinImpl.cpp \
+#    PinyinFrame.cpp \
+#    PinyinEngine.cpp \
+#    Config.cpp \
+#    phrase/PinyinPhrase.cpp \
+#    scim/scim_pinyin.cpp
 
 HEADERS  += menuwindow.h \
     aboutdialog.h \
@@ -98,7 +104,13 @@ HEADERS  += menuwindow.h \
     handwidget.h \
     public.h \
     myqsplashscreen.h \
-    myapplication.h
+    myapplication.h \
+#    PinyinImpl.h \
+#    PinyinFrame.h \
+#    PinyinEngine.h \
+#    Config.h \
+#    phrase/PinyinPhrase.h \
+#    scim/scim_pinyin.h
 
 OTHER_FILES += \
     menuwindow \

@@ -62,7 +62,7 @@ void UnitSetDialog::createItems()
     zhikongLabel->setVisible(false);
     zongxianLabel = new QLabel(tr("总线盘号"), this);
     zongxianLabel->setGeometry(QRect(400,12,50,20));
-    zongxianLabel->setVisible(false);    
+    zongxianLabel->setVisible(false);
 
     registerNodeLabel = new QLabel(tr("登记节点数:"), this);
     registerNodeLabel->setGeometry(QRect(20, 12, 80,20));
@@ -137,31 +137,42 @@ void UnitSetDialog::createItems()
     zongxianComboBox->setVisible(false);
     QSqlDatabase::database().commit();
 
-    if (boardComboBox->currentText().toInt() < 33)
-    {
-        loopLabel->setVisible(true);
-        loopComboBox->setVisible(true);
-        groupsetPushButton->setVisible(true);
-    }
-    else if(boardComboBox->currentText().toInt() == 33)
-    {
-        loopLabel->setVisible(false);//loopLabel->setVisible(true);
-        floorshowloopComboBox->setVisible(true);
-        groupsetPushButton->setVisible(true);
-    }
-    else if(boardComboBox->currentText().toInt() == 34)
-    {
-        typeComboBox->setVisible(true);
-        zhikongLabel->setVisible(true);
-        zhikongComboBox->setVisible(true);
-    }
-
     danyuanComboBox = new QComboBox(this);
     danyuanComboBox->setGeometry(QRect(550, 8, 100, 27));
     for (int i = 0;i < (int)sizeof(char_danyuan) /((int)sizeof(char)*4);i++)
     {
         danyuanComboBox->addItem(tr(char_danyuan[i]));
     }
+
+    if (boardComboBox->currentText().toInt() < 33)
+    {
+        loopLabel->setVisible(true);
+        loopComboBox->setVisible(true);
+        groupsetPushButton->setVisible(true);
+        danyuanComboBox->setVisible(true);
+        danyuanCountnumLabel->setVisible(true);
+        countnumLabel->setVisible(true);
+    }
+    else if(boardComboBox->currentText().toInt() == 33)
+    {
+        loopLabel->setVisible(false);//loopLabel->setVisible(true);
+        floorshowloopComboBox->setVisible(true);
+        groupsetPushButton->setVisible(true);
+        danyuanComboBox->setVisible(false);
+        danyuanCountnumLabel->setVisible(false);
+        countnumLabel->setVisible(false);
+    }
+    else if(boardComboBox->currentText().toInt() == 34)
+    {
+        typeComboBox->setVisible(true);
+        zhikongLabel->setVisible(true);
+        zhikongComboBox->setVisible(true);
+        danyuanComboBox->setVisible(false);
+        danyuanCountnumLabel->setVisible(false);
+        countnumLabel->setVisible(false);
+    }
+
+
     connect(boardComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(boardreadUnitSet()));
     connect(loopComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(loopreadUnitSet()));
     connect(danyuanComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(danyuanreadUnitSet()));
@@ -304,10 +315,21 @@ void UnitSetDialog::initModel()
             if (query.value(1).toBool() == true)
             {
                 registerNodenum++;
-                if (Type::char_danyuan((query.value(7).toInt() >> 8) & 0xFF) == danyuanComboBox->currentText())
+//                if (Type::char_danyuan((query.value(7).toInt() >> 8) & 0xFF) == danyuanComboBox->currentText())
+//                {
+//                    danyuanCountnum++;
+//                }
+                if(danyuanComboBox->currentText() == QString("所有类型"))
+                {
+                    danyuanCountnum = registerNodenum;
+                }
+                else if(Type::char_danyuan((query.value(7).toInt() >> 8) & 0xFF) == danyuanComboBox->currentText())
                 {
                     danyuanCountnum++;
-                }
+                 }
+
+
+
             }
         }
         registerNodenumLabel->setText(tr("%1").arg(registerNodenum));
@@ -493,6 +515,9 @@ void UnitSetDialog::boardreadUnitSet()
         zongxianComboBox->setVisible(false);
         zhikongComboBox->setVisible(false);
         floorshowloopComboBox->setVisible(false);
+        danyuanComboBox->setVisible(true);
+        danyuanCountnumLabel->setVisible(true);
+        countnumLabel->setVisible(true);
         readUnitSet();
     }
     else  if(boardnum  == 33)
@@ -506,6 +531,9 @@ void UnitSetDialog::boardreadUnitSet()
         zongxianComboBox->setVisible(false);
         zhikongComboBox->setVisible(false);
         floorshowloopComboBox->setVisible(true);
+        danyuanComboBox->setVisible(false);
+        danyuanCountnumLabel->setVisible(false);
+        countnumLabel->setVisible(false);
         readUnitSet();
     }
     else if((boardnum == 34) &&(zhikongComboBox->currentText().toInt() != 0))
@@ -519,6 +547,9 @@ void UnitSetDialog::boardreadUnitSet()
         zongxianComboBox->setVisible(false);
         zhikongComboBox->setVisible(true);
         floorshowloopComboBox->setVisible(false);
+        danyuanComboBox->setVisible(false);
+        danyuanCountnumLabel->setVisible(false);
+        countnumLabel->setVisible(false);
         typeComboBox->setCurrentIndex(0);
         readUnitSet();
     }
@@ -533,6 +564,9 @@ void UnitSetDialog::boardreadUnitSet()
         zongxianComboBox->setVisible(false);
         zhikongComboBox->setVisible(true);
         floorshowloopComboBox->setVisible(false);
+        danyuanComboBox->setVisible(false);
+        danyuanCountnumLabel->setVisible(false);
+        countnumLabel->setVisible(false);
         typeComboBox->setCurrentIndex(0);
         for(int row = 0; row < 8; row++)
         {
@@ -712,14 +746,17 @@ void UnitSetDialog::readUnitSet()
         tableview->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
         registerNodenum = 64;
-        danyuanCountnum = 0;
         registerNodenumLabel->setText(tr("%1").arg(registerNodenum));
-        danyuanCountnumLabel->setText(tr("%1").arg(danyuanCountnum));
         qDebug() << QObject::tr("select take time：%1 ms").arg(time.elapsed());
         /*切换接口板和回路号以及单元类型结束后，此值变为false*/
         comboChangeFlag = false;
         dataChangeFlag = 0;
 
+    }
+    else if((iobr == 34)&&(typeComboBox->currentIndex() == 0))
+    {
+        registerNodenum = 8;
+        registerNodenumLabel->setText(tr("%1").arg(registerNodenum));
     }
     else
     {
@@ -751,10 +788,18 @@ void UnitSetDialog::readUnitSet()
             if (query.value(1).toBool() == true)
             {
                 registerNodenum++;
-                if (Type::char_danyuan((query.value(7).toInt() >> 8) & 0xFF) == danyuanComboBox->currentText())
+//                if (Type::char_danyuan((query.value(7).toInt() >> 8) & 0xFF) == danyuanComboBox->currentText())
+//                {
+//                    danyuanCountnum++;
+//                }
+                if(danyuanComboBox->currentText() == QString("所有类型"))
+                {
+                    danyuanCountnum = registerNodenum;
+                }
+                else if(Type::char_danyuan((query.value(7).toInt() >> 8) & 0xFF) == danyuanComboBox->currentText())
                 {
                     danyuanCountnum++;
-                }
+                 }
             }
         }
 

@@ -3,6 +3,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QtCore/QVariant>
+#include <QCoreApplication>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,7 +59,11 @@ void pollingThread::run()
     }
 
     qDebug()<<"in pollingThread: send 3 times startwork frame...";
-    sleep(3);
+    //sleep(3);
+    QTime t;
+    t.start();
+    while(t.elapsed()<3000)//3s
+        QCoreApplication::processEvents();
 
     getBoardState();
     if(boardRegNum.isEmpty())
